@@ -8,10 +8,10 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import AccessToken
 
-from api_yamdb.settings import DEFAULT_FROM_EMAIL
 from api import permissions
 from api.serializers import (ForAdminSerializer, ForUserSerializer,
                              TokenSerializer)
+from api_yamdb.settings import DEFAULT_FROM_EMAIL
 
 from .models import User
 
@@ -24,7 +24,9 @@ def create_confirmation_code_and_send_email(username):
         subject='Confirmation code',
         message=f'Your confirmation code {confirmation_code}',
         from_email=DEFAULT_FROM_EMAIL,
-        recipient_list=['e@y.ru'])
+        recipient_list=[user.email],
+        fail_silently=False
+    )
 
 
 class APISignUp(APIView):

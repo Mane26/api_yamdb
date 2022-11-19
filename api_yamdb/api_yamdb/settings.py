@@ -108,6 +108,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static/'),)
+CSV_FILES_DIR = os.path.join(BASE_DIR, 'static/data')
 # укажем какую модель user использовать
 AUTH_USER_MODEL = 'users.User'
 
@@ -118,7 +119,8 @@ MESSAGE_FOR_RESERVED_NAME = 'Имя пользователя "me" использ
 MESSAGE_FOR_USER_NOT_FOUND = 'Пользователя с таким именем нет!'
 
 # настройки для отправки email в консоль
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 DEFAULT_FROM_EMAIL = 's.m.m21-08-90@mail.ru'
 
 REST_FRAMEWORK = {

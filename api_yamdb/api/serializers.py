@@ -1,11 +1,10 @@
-from rest_framework import serializers, exceptions
-from rest_framework.validators import UniqueValidator
-from rest_framework.relations import SlugRelatedField
 from django.db.models import Avg
+from rest_framework import exceptions, serializers
+from rest_framework.relations import SlugRelatedField
+from rest_framework.validators import UniqueValidator
 
 from api_yamdb.settings import (MESSAGE_FOR_RESERVED_NAME,
-                                MESSAGE_FOR_USER_NOT_FOUND,
-                                RESERVED_NAME)
+                                MESSAGE_FOR_USER_NOT_FOUND, RESERVED_NAME)
 from reviews.models import Comment, Review
 from titles.models import Category, Genre, Title
 from users.models import User

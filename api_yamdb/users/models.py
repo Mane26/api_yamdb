@@ -3,8 +3,7 @@ from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
 
 # список ролей пользователя
-from api_yamdb.settings import (MESSAGE_FOR_RESERVED_NAME,
-                                RESERVED_NAME)
+from api_yamdb.settings import MESSAGE_FOR_RESERVED_NAME, RESERVED_NAME
 
 
 class MyUserManager(UserManager):
