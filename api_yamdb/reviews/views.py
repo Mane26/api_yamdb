@@ -1,10 +1,9 @@
+from api.permissions import IsAuthorOrAdministratorOrReadOnly
+from api.serializers import CommentSerializer, ReviewSerializer
 from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework.response import Response
-
-from api.permissions import IsAuthorOrAdministratorOrReadOnly
-from api.serializers import CommentSerializer, ReviewSerializer
-from reviews.models import Comment, Review
+from reviews.models import Review
 from titles.models import Title
 
 
@@ -24,18 +23,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer = CommentSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save(author=self.request.user, review_id=review.id)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    def partial_update(self, request, *args, **kwargs):
-        comment = get_object_or_404(Comment, id=self.kwargs.get('pk'),
-                                    review__id=self.kwargs.get('review_id'))
-        if self.request.user != comment.author:
-            return Response(status=status.HTTP_403_FORBIDDEN)
-        serializer = CommentSerializer(comment, data=request.data,
-                                       partial=True)
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -55,7 +43,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_400_BAD_REQUEST)
         if serializer.is_valid(raise_exception=True):
             serializer.save(author=self.request.user, title_id=title.id)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def partial_update(self, request, *args, **kwargs):
         review = get_object_or_404(Review, id=self.kwargs.get('pk'),
@@ -65,4 +53,4 @@ class ReviewViewSet(viewsets.ModelViewSet):
         serializer = ReviewSerializer(review, data=request.data, partial=True)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            return Response(serializer.data)
+        return Response(serializer.data)

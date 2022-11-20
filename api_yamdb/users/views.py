@@ -1,3 +1,6 @@
+from api import permissions
+from api.serializers import (ForAdminSerializer, ForUserSerializer,
+                             TokenSerializer)
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
@@ -8,9 +11,6 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import AccessToken
 
-from api import permissions
-from api.serializers import (ForAdminSerializer, ForUserSerializer,
-                             TokenSerializer)
 from api_yamdb.settings import DEFAULT_FROM_EMAIL
 
 from .models import User
@@ -40,10 +40,10 @@ class APISignUp(APIView):
             # создаем confirmation code и отправляем на почту
             create_confirmation_code_and_send_email(
                 serializer.data['username'])
-            return Response(
-                {'email': serializer.data['email'],
-                 'username': serializer.data['username']},
-                status=status.HTTP_200_OK)
+        return Response({
+            'email': serializer.data['email'],
+            'username': serializer.data['username']},
+            status=status.HTTP_200_OK)
 
 
 class APIToken(APIView):
@@ -52,18 +52,19 @@ class APIToken(APIView):
 
     def post(self, request):
         serializer = TokenSerializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            user = get_object_or_404(
-                User, username=serializer.data['username'])
-            # проверяем confirmation code, если верный, выдаем токен
-            if default_token_generator.check_token(
-               user, serializer.data['confirmation_code']):
-                token = AccessToken.for_user(user)
-                return Response(
-                    {'token': str(token)}, status=status.HTTP_200_OK)
-            return Response({
-                'confirmation code': 'Некорректный код подтверждения!'},
-                status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        user = get_object_or_404(
+            User,
+            username=serializer.validated_data["username"]
+        )
+
+        if default_token_generator.check_token(
+            user, serializer.validated_data["confirmation_code"]
+        ):
+            token = AccessToken.for_user(user)
+            return Response({"token": str(token)}, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class APIUser(APIView):

@@ -1,5 +1,4 @@
 from django_filters import rest_framework as df_filters
-
 from titles.models import Title
 
 
