@@ -1,11 +1,11 @@
-import datetime
+from datetime import datetime
 
 from django.core.exceptions import ValidationError
 
 
 def year_validation(value):
-    if value > datetime.datetime.now().year:
+    if value >= datetime.today().year:
         raise ValidationError(
-            '%(value) не может быть больше текущего года!',
+            message=f'Год {value} больше текущего!',
             params={'value': value},
         )

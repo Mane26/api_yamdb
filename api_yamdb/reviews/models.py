@@ -1,5 +1,6 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+
 from titles.models import Title
 from users.models import User
 
@@ -14,6 +15,8 @@ class Review(models.Model):
                                              MaxValueValidator(10)])
 
     class Meta:
+        verbose_name = 'Отзыв'
+        verbose_name_plural = 'Отзывы'
         ordering = ('-pub_date', 'score')
         constraints = [
             models.UniqueConstraint(fields=['title', 'author'],
@@ -30,4 +33,6 @@ class Comment(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
 
     class Meta:
+        verbose_name = 'Комментарий'
+        verbose_name_plural = 'Комментарии'
         ordering = ('-pub_date',)

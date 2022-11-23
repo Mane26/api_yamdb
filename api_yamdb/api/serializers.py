@@ -61,21 +61,27 @@ class TitleCreateSerializer(serializers.ModelSerializer):
 class ForUserSerializer(serializers.ModelSerializer):
     """Сериализатор для пользователей со статусом user.
     Зарезервированное имя использовать нельзя"""
-    email = serializers.EmailField(
-        validators=[UniqueValidator(queryset=User.objects.all())]
-    )
 
     class Meta:
         model = User
-        fields = (
-            'username', 'email', 'first_name', 'last_name', 'bio', 'role'
-        )
+        fields = ('id', 'username', 'email', 'first_name',
+                  'last_name', 'bio', 'role')
         read_only_fields = ('role', )
 
     def validate_username(self, value):
         if value == RESERVED_NAME:
             raise serializers.ValidationError(MESSAGE_FOR_RESERVED_NAME)
         return value
+
+
+class MyUserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = (
+            'first_name', 'last_name', 'username',
+            'bio', 'email', 'role',
+        )
 
 
 class ForAdminSerializer(serializers.ModelSerializer):
@@ -118,8 +124,23 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    author = SlugRelatedField(slug_field='username', read_only=True)
+    author = serializers.StringRelatedField(
+        read_only=True
+    )
 
     class Meta:
         model = Review
-        fields = ('id', 'author', 'text', 'score', 'pub_date')
+        fields = (
+            'id', 'text', 'author', 'score', 'pub_date')
+
+    def validate(self, data):
+        """Запрещает пользователям оставлять повторные отзывы."""
+        if not self.context.get('request').method == 'POST':
+            return data
+        author = self.context.get('request').user
+        title_id = self.context.get('view').kwargs.get('title_id')
+        if Review.objects.filter(author=author, title=title_id).exists():
+            raise serializers.ValidationError(
+                'Вы уже оставляли отзыв на это произведение'
+            )
+        return data

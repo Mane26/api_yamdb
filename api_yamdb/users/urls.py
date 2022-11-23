@@ -1,6 +1,5 @@
+from api.views import APISignUp, APIToken
 from django.urls import path
-
-from .views import APISignUp, APIToken
 
 urlpatterns = [
     path('signup/', APISignUp.as_view(), name='signup'),

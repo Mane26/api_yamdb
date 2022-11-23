@@ -1,14 +1,9 @@
-from django.contrib.auth import get_user_model
+from api.validators import year_validation
 from django.db import models
-
-from .validators import year_validation
-
-User = get_user_model()
 
 
 class Category(models.Model):
     """Модель категории."""
-    id = models.AutoField(primary_key=True, editable=False)
     name = models.CharField(max_length=256, db_index=True,
                             verbose_name='Название категории',
                             help_text='Укажите название для категории')
@@ -56,7 +51,7 @@ class Title(models.Model):
     year = models.PositiveSmallIntegerField(verbose_name='Год выпуска',
                                             validators=[year_validation],
                                             help_text='Задайте год выпуска')
-    description = models.TextField(null=True, blank=True,
+    description = models.CharField(max_length=500, blank=True,
                                    verbose_name='Описание')
     category = models.ForeignKey(Category, verbose_name='Категория',
                                  on_delete=models.SET_NULL,

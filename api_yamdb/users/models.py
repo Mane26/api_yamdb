@@ -1,9 +1,16 @@
-# список ролей пользователя
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
 
-# список ролей пользователя
 from api_yamdb.settings import MESSAGE_FOR_RESERVED_NAME, RESERVED_NAME
+
+USER = "user"
+MODERATOR = "moderator"
+ADMIN = "admin"
+ROLES = [
+    ("user", USER),
+    ("moderator", MODERATOR),
+    ("admin", ADMIN)
+]
 
 
 class MyUserManager(UserManager):
@@ -24,16 +31,18 @@ class MyUserManager(UserManager):
 
 
 class User(AbstractUser):
-    # пользовательские роли
-    ROLES = (
-        ('user', 'user'),
-        ('moderator', 'moderator'),
-        ('admin', 'admin')
-    )
+    """Класс пользователей."""
     bio = models.TextField(blank=True)
-    role = models.CharField(max_length=200, choices=ROLES, default='user')
+    role = models.CharField(
+        max_length=max(len(role) for _, role in ROLES),
+        choices=ROLES,
+        default=USER
+    )
     username = models.CharField(max_length=150, unique=True, db_index=True)
     objects = MyUserManager()
+    email = models.EmailField(
+        max_length=254, verbose_name='email',
+        unique=True)
 
     REQUIRED_FIELDS = ('email', 'password')
 
@@ -44,8 +53,12 @@ class User(AbstractUser):
 
     @property
     def is_admin(self):
-        return self.role == self.ROLES[2][0]
+        return self.is_staff or self.role == ADMIN
 
     @property
     def is_moderator(self):
-        return self.role == self.ROLES[1][0]
+        return self.role == MODERATOR
+
+    @property
+    def is_user(self):
+        return self.role == USER
