@@ -1,7 +1,8 @@
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
 
-from api_yamdb.settings import MESSAGE_FOR_RESERVED_NAME, RESERVED_NAME
+from api_yamdb.settings import message_for_reservad_name, reserved_name
+
 
 USER = "user"
 MODERATOR = "moderator"
@@ -19,8 +20,8 @@ class MyUserManager(UserManager):
     def create_user(self, username, email, password, **extra_fields):
         if not email:
             raise ValueError('Поле email обязательное')
-        if username == RESERVED_NAME:
-            raise ValueError(MESSAGE_FOR_RESERVED_NAME)
+        if username == reserved_name:
+            raise ValueError(message_for_reservad_name)
         return super().create_user(
             username, email=email, password=password, **extra_fields)
 

@@ -99,9 +99,9 @@ STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static/'),)
 CSV_FILES_DIR = os.path.join(BASE_DIR, 'static/data')
 AUTH_USER_MODEL = 'users.User'
 
-RESERVED_NAME = 'me'
-MESSAGE_FOR_RESERVED_NAME = 'Имя пользователя "me" использовать нельзя!'
-MESSAGE_FOR_USER_NOT_FOUND = 'Пользователя с таким именем нет!'
+reserved_name = 'me'
+message_for_reservad_name = 'Имя пользователя "me" использовать нельзя!'
+message_for_user_not_found = 'Пользователя с таким именем нет!'
 
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')

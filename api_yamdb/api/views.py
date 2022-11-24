@@ -13,13 +13,12 @@ from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 
-from api import permissions
 from api.filters import TitleFilter
 from api.pagination import Pagination
 from api.permissions import (IsAdmin, IsAdminOrReadOnly,
                              IsAuthorOrAdministratorOrReadOnly)
 from api.serializers import (CategorySerializer, CommentSerializer,
-                             ForAdminSerializer, ForUserSerializer,
+                             ForUserSerializer,
                              GenreSerializer, MyUserSerializer,
                              ReviewSerializer, TitleCreateSerializer,
                              TitleSerializer, TokenSerializer)
@@ -30,36 +29,51 @@ from users.models import User
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    """POST для всех авторизованных, PATCH для модеров, админов и автора."""
-    permission_classes = (IsAuthorOrAdministratorOrReadOnly,)
+    """Вьюсет для обьектов модели Comment."""
+
     serializer_class = CommentSerializer
+    permission_classes = (IsAuthorOrAdministratorOrReadOnly,)
+
+    def get_review(self):
+        """Возвращает объект текущего отзыва."""
+        review_id = self.kwargs.get('review_id')
+        return get_object_or_404(Review, pk=review_id)
 
     def get_queryset(self):
-        review = get_object_or_404(Review, id=self.kwargs.get('review_id'),
-                                   title__id=self.kwargs.get('title_id'))
-        return review.comments.all()
+        """Возвращает queryset c комментариями для текущего отзыва."""
+        return self.get_review().comments.all()
 
     def perform_create(self, serializer):
-        review_id = int(self.kwargs.get('review_id'))
-        review = get_object_or_404(Review, id=review_id)
-        user = self.request.user
-        serializer.save(author=user, review=review)
+        """Создает комментарий для текущего отзыва,
+        где автором является текущий пользователь."""
+        serializer.save(
+            author=self.request.user,
+            review=self.get_review()
+        )
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
-    """POST для всех авторизованных, PATCH для модеров, админов и автора."""
+    """Вьюсет для обьектов модели Review."""
+
     serializer_class = ReviewSerializer
     permission_classes = (IsAuthorOrAdministratorOrReadOnly,)
 
+    def get_title(self):
+        """Возвращает объект текущего произведения."""
+        title_id = self.kwargs.get('title_id')
+        return get_object_or_404(Title, pk=title_id)
+
     def get_queryset(self):
-        title = Title.objects.get(id=self.kwargs.get('title_id'))
-        return title.reviews.all()
+        """Возвращает queryset c отзывами для текущего произведения."""
+        return self.get_title().reviews.all()
 
     def perform_create(self, serializer):
-        title_id = int(self.kwargs.get('title_id'))
-        title = get_object_or_404(Title, pk=title_id)
-        user = self.request.user
-        serializer.save(author=user, title=title)
+        """Создает отзыв для текущего произведения,
+        где автором является текущий пользователь."""
+        serializer.save(
+            author=self.request.user,
+            title=self.get_title()
+        )
 
 
 class CustomMixin(ListModelMixin, CreateModelMixin, DestroyModelMixin,
@@ -125,11 +139,10 @@ class APISignUp(APIView):
 
     def post(self, request):
         serializer = ForUserSerializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            # создаем confirmation code и отправляем на почту
-            create_confirmation_code_and_send_email(
-                serializer.data['username'])
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        create_confirmation_code_and_send_email(
+            serializer.data['username'])
         return Response({
             'email': serializer.data['email'],
             'username': serializer.data['username']},
@@ -137,7 +150,13 @@ class APISignUp(APIView):
 
 
 class APIUser(APIView):
-    """Работа со своими данными для пользователя"""
+
+    @action(
+        methods=('get', 'patch'),
+        detail=False,
+        url_path='me',
+        permission_classes=(IsAuthenticated,),
+    )
     def get(self, request, *args, **kwargs):
         user = get_object_or_404(User, username=request.user.username)
         serializer = ForUserSerializer(user, many=False)
@@ -147,10 +166,9 @@ class APIUser(APIView):
         user = get_object_or_404(User, username=request.user.username)
         serializer = ForUserSerializer(
             user, data=request.data, partial=True)
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class APIToken(APIView):
@@ -193,17 +211,6 @@ def get_token(request):
         {'confirmation_code': 'Неверный код подтверждения!'},
         status=status.HTTP_400_BAD_REQUEST
     )
-
-
-class UserViewSetForAdmin(ModelViewSet):
-    """Работа с пользователями для администратора"""
-    queryset = User.objects.all()
-    serializer_class = ForAdminSerializer
-    # поиск по эндпоинту users/{username}/
-    lookup_field = 'username'
-    permission_classes = (permissions.IsAdmin, )
-    filter_backends = (filters.SearchFilter, )
-    search_fields = ('username', )
 
 
 class MyUserViewSet(ModelViewSet):

@@ -6,8 +6,8 @@ from reviews.models import Comment, Review
 from titles.models import Category, Genre, Title
 from users.models import User
 
-from api_yamdb.settings import (MESSAGE_FOR_RESERVED_NAME,
-                                MESSAGE_FOR_USER_NOT_FOUND, RESERVED_NAME)
+from api_yamdb.settings import (message_for_reservad_name,
+                                message_for_user_not_found, reserved_name)
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -69,8 +69,8 @@ class ForUserSerializer(serializers.ModelSerializer):
         read_only_fields = ('role', )
 
     def validate_username(self, value):
-        if value == RESERVED_NAME:
-            raise serializers.ValidationError(MESSAGE_FOR_RESERVED_NAME)
+        if value == reserved_name:
+            raise serializers.ValidationError(message_for_reservad_name)
         return value
 
 
@@ -96,8 +96,8 @@ class ForAdminSerializer(serializers.ModelSerializer):
             'username', 'email', 'first_name', 'last_name', 'bio', 'role')
 
     def validate_username(self, value):
-        if value == RESERVED_NAME:
-            raise serializers.ValidationError(MESSAGE_FOR_RESERVED_NAME)
+        if value == reserved_name:
+            raise serializers.ValidationError(message_for_reservad_name)
         return value
 
 
@@ -108,10 +108,10 @@ class TokenSerializer(serializers.Serializer):
     confirmation_code = serializers.CharField(max_length=200, required=True)
 
     def validate_username(self, value):
-        if value == RESERVED_NAME:
-            raise serializers.ValidationError(MESSAGE_FOR_RESERVED_NAME)
+        if value == reserved_name:
+            raise serializers.ValidationError(message_for_reservad_name)
         if not User.objects.filter(username=value).exists():
-            raise exceptions.NotFound(MESSAGE_FOR_USER_NOT_FOUND)
+            raise exceptions.NotFound(message_for_user_not_found)
         return value
 
 

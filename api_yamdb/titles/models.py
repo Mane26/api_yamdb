@@ -24,7 +24,6 @@ class Category(models.Model):
 
 class Genre(models.Model):
     """Модель жанра."""
-    id = models.AutoField(primary_key=True, editable=False)
     name = models.CharField(max_length=256, db_index=True,
                             verbose_name='Название жанра',
                             help_text='Укажите название жанра')
@@ -44,7 +43,6 @@ class Genre(models.Model):
 
 class Title(models.Model):
     """Модель произведения."""
-    id = models.AutoField(primary_key=True, editable=False)
     name = models.CharField(max_length=256, db_index=True,
                             verbose_name='Название произведения',
                             help_text='Укажите название произведения')
