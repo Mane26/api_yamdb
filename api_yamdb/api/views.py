@@ -18,8 +18,8 @@ from api.pagination import Pagination
 from api.permissions import (IsAdmin, IsAdminOrReadOnly,
                              IsAuthorOrAdministratorOrReadOnly)
 from api.serializers import (CategorySerializer, CommentSerializer,
-                             ForUserSerializer,
                              GenreSerializer, MyUserSerializer,
+                             UserSerializer,
                              ReviewSerializer, TitleCreateSerializer,
                              TitleSerializer, TokenSerializer)
 from api_yamdb.settings import DEFAULT_FROM_EMAIL
@@ -138,7 +138,7 @@ class APISignUp(APIView):
     permission_classes = (AllowAny, )
 
     def post(self, request):
-        serializer = ForUserSerializer(data=request.data)
+        serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         create_confirmation_code_and_send_email(
@@ -147,28 +147,6 @@ class APISignUp(APIView):
             'email': serializer.data['email'],
             'username': serializer.data['username']},
             status=status.HTTP_200_OK)
-
-
-class APIUser(APIView):
-
-    @action(
-        methods=('get', 'patch'),
-        detail=False,
-        url_path='me',
-        permission_classes=(IsAuthenticated,),
-    )
-    def get(self, request, *args, **kwargs):
-        user = get_object_or_404(User, username=request.user.username)
-        serializer = ForUserSerializer(user, many=False)
-        return Response(serializer.data)
-
-    def patch(self, request, *args, **kwargs):
-        user = get_object_or_404(User, username=request.user.username)
-        serializer = ForUserSerializer(
-            user, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class APIToken(APIView):

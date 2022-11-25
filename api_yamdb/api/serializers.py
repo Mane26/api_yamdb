@@ -58,7 +58,7 @@ class TitleCreateSerializer(serializers.ModelSerializer):
         model = Title
 
 
-class ForUserSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     """Сериализатор для пользователей со статусом user.
     Зарезервированное имя использовать нельзя"""
 
@@ -68,10 +68,12 @@ class ForUserSerializer(serializers.ModelSerializer):
                   'last_name', 'bio', 'role')
         read_only_fields = ('role', )
 
-    def validate_username(self, value):
-        if value == reserved_name:
-            raise serializers.ValidationError(message_for_reservad_name)
-        return value
+    def validate_username(self, username):
+        if username in 'me':
+            raise serializers.ValidationError(
+                'Использовать имя me запрещено'
+            )
+        return username
 
 
 class MyUserSerializer(serializers.ModelSerializer):
